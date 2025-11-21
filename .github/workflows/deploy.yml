@@ -8,21 +8,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages with token
+      - name: Checkout gh-pages
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create and populate version folder
+      - name: Create version folder and copy files
         run: |
-          # Создаем папку версии
           mkdir -p v${{ github.ref_name }}
-          # Копируем ВСЕ файлы в версионную папку
-          cp -r ru en index.html "v${{ github.ref_name }}"/
+          cp -r ru en index.html v${{ github.ref_name }}/
 
-      - name: Push changes
+      - name: Commit and push
         run: |
           git add .
-          git commit -m "Add version ${{ github.ref_name }}" || echo "No changes to commit"
+          git commit -m "Add version ${{ github.ref_name }}"
           git push
