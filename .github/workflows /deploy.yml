@@ -8,16 +8,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Checkout gh-pages branch
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages-dir
+      - name: Clone main and gh-pages
+        run: |
+          # Клонируем main ветку
+          git clone https://github.com/${{ github.repository }}.git main-repo
+          
+          # Клонируем gh-pages ветку
+          git clone -b gh-pages https://github.com/${{ github.repository }}.git gh-pages-repo
 
       - name: Prepare versioned folder
         run: |
@@ -25,14 +22,14 @@ jobs:
           VERSION="${VERSION#v}"
           
           # Создаем версионную папку в gh-pages
-          mkdir -p gh-pages-dir/v$VERSION
+          mkdir -p gh-pages-repo/v$VERSION
           
-          # Копируем файлы из текущей рабочей директории (main) в версионную папку
-          cp -r ./en ./ru ./index.html gh-pages-dir/v$VERSION/
+          # Копируем файлы из main в версионную папку
+          cp -r main-repo/en main-repo/ru main-repo/index.html gh-pages-repo/v$VERSION/
 
       - name: Deploy to gh-pages
         run: |
-          cd gh-pages-dir
+          cd gh-pages-repo
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
