@@ -1,28 +1,26 @@
-name: Deploy Release
+name: Deploy to GitHub Pages
 
 on:
-  release:
-    types: [published]
+  release: # триггер, который реагирует на события, связанные с релизами
+    types: [published] # запускает workflow только когда релиз опубликован
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Клонирование ветки gh-pages
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Prepare versioned folder
+        run: |
+            mkdir -p v${{ github.event.release.tag_name }}
+            cp -r $(ls -A | grep -v "^v${{ github.event.release.tag_name }}$" | grep -v "^.git$" | grep -v "^.github$") v${{ github.event.release.tag_name}}/
+
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          ref: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Создание версионной папки
-        run: |
-          mkdir -p v${{ github.ref_name }}
-          cp -r ru en index.html v${{ github.ref_name }}/
-
-      - name: Публикация изменений
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add .
-          git commit -m "Add version ${{ github.ref_name }}"
-          git push
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
