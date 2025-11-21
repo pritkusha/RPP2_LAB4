@@ -14,13 +14,15 @@ jobs:
           ref: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create version folder
+      - name: Create and populate version folder
         run: |
-          mkdir -p ${{ github.ref_name }}
-          cp -r ru en index.html ${{ github.ref_name }}/
+          # Создаем папку версии
+          mkdir -p v${{ github.ref_name }}
+          # Копируем ВСЕ файлы в версионную папку
+          cp -r ru en index.html "v${{ github.ref_name }}"/
 
       - name: Push changes
         run: |
           git add .
-          git commit -m "Add ${{ github.ref_name }}" || echo "No changes to commit"
+          git commit -m "Add version ${{ github.ref_name }}" || echo "No changes to commit"
           git push
