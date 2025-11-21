@@ -1,19 +1,26 @@
-name: Deploy Release
+name: Deploy to GitHub Pages
 
 on:
-  release:
-    types: [published]
+  release: # триггер, который реагирует на события, связанные с релизами
+    types: [published] # запускает workflow только когда релиз опубликован
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Prepare versioned folder
+        run: |
+            mkdir -p v${{ github.event.release.tag_name }}
+            cp -r $(ls -A | grep -v "^v${{ github.event.release.tag_name }}$" | grep -v "^.git$" | grep -v "^.github$") v${{ github.event.release.tag_name}}/
+
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
-          destination_dir: ${{ github.ref_name }}
+          publish_dir: ./public
+          publish_branch: gh-pages
