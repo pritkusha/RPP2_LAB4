@@ -8,22 +8,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages
+      - name: Checkout main branch (with source files)
+        uses: actions/checkout@v4
+        with:
+          ref: main 
+          
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
           ref: gh-pages
+          path: gh-pages-dir
 
-      - name: Подготовка версионной папки
+      - name: Prepare versioned folder
         run: |
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}" # Убираем 'v' если он есть в начале
-          mkdir -p v$VERSION
-          cp -r ru en index.html v$VERSION/
+          
+          # Создаем версионную папку в gh-pages
+          mkdir -p gh-pages-dir/v$VERSION
+          
+          # Копируем файлы из main branch в версионную папку
+          cp -r ru en index.html gh-pages-dir/v$VERSION/
 
-      - name: Публикация
+      - name: Deploy to gh-pages
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          cd gh-pages-dir
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
           git add .
           git commit -m "Deploy version ${{ github.ref_name }}"
           git push
