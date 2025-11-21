@@ -8,18 +8,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages
+      - name: Клонирование ветки gh-pages
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create version folder and copy files
+      - name: Создание версионной папки
         run: |
           mkdir -p v${{ github.ref_name }}
           cp -r ru en index.html v${{ github.ref_name }}/
 
-      - name: Commit and push
+      - name: Публикация изменений
         run: |
           git add .
           git commit -m "Add version ${{ github.ref_name }}"
