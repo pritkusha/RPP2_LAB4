@@ -12,13 +12,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          path: main-source
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-          path: gh-pages-target
+          path: gh-pages-dir
 
       - name: Prepare versioned folder
         run: |
@@ -26,14 +25,14 @@ jobs:
           VERSION="${VERSION#v}"
           
           # Создаем версионную папку в gh-pages
-          mkdir -p gh-pages-target/v$VERSION
+          mkdir -p gh-pages-dir/v$VERSION
           
-          # Копируем файлы из main branch в версионную папку
-          cp -r main-source/ru main-source/en main-source/index.html gh-pages-target/v$VERSION/
+          # Копируем файлы из текущей рабочей директории (main) в версионную папку
+          cp -r ./en ./ru ./index.html gh-pages-dir/v$VERSION/
 
       - name: Deploy to gh-pages
         run: |
-          cd gh-pages-target
+          cd gh-pages-dir
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
