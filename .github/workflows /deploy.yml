@@ -8,28 +8,26 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone main and gh-pages
+      - name: Checkout and setup
         run: |
-          # Клонируем main ветку
-          git clone https://github.com/${{ github.repository }}.git main-repo
+          # Клонируем репозиторий
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git repo
+          cd repo
           
-          # Клонируем gh-pages ветку
-          git clone -b gh-pages https://github.com/${{ github.repository }}.git gh-pages-repo
-
-      - name: Prepare versioned folder
-        run: |
+          # Переключаемся на gh-pages
+          git checkout gh-pages
+          
+          # Создаем версионную папку
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
+          mkdir -p v$VERSION
           
-          # Создаем версионную папку в gh-pages
-          mkdir -p gh-pages-repo/v$VERSION
+          # Скачиваем файлы напрямую из main ветки
+          git checkout main -- en ru index.html
+          cp -r en ru index.html v$VERSION/
+          rm -rf en ru index.html
           
-          # Копируем файлы из main в версионную папку
-          cp -r main-repo/en main-repo/ru main-repo/index.html gh-pages-repo/v$VERSION/
-
-      - name: Deploy to gh-pages
-        run: |
-          cd gh-pages-repo
+          # Коммитим и пушим
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
