@@ -12,11 +12,6 @@ jobs:
       - name: Клонирование репозитория
         uses: actions/checkout@v3
 
-      - name: Настройка Git
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-
       - name: Подготовка версионной папки
         run: |
           mkdir -p v${{ github.event.release.tag_name }}
@@ -28,3 +23,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./v${{ github.event.release.tag_name }}
           publish_branch: gh-pages
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
