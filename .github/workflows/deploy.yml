@@ -8,19 +8,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages
+      - name: Checkout main
         uses: actions/checkout@v4
+        
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          ref: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create version folder and copy files
-        run: |
-          mkdir -p ${{ github.ref_name }}
-          cp -r ru en index.html ${{ github.ref_name }}/
-
-      - name: Commit and push changes
-        run: |
-          git add .
-          git commit -m "Deploy ${{ github.ref_name }}" || exit 0
-          git push
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          destination_dir: ${{ github.ref_name }}
