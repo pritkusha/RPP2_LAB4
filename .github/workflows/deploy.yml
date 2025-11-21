@@ -1,15 +1,25 @@
-name: Deploy on Release
+name: Deploy Release
+
 on:
   release:
     types: [published]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout gh-pages
         uses: actions/checkout@v4
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          ref: gh-pages
+
+      - name: Create version folder
+        run: |
+          mkdir -p ${{ github.ref_name }}
+          cp -r ru en index.html ${{ github.ref_name }}/
+
+      - name: Publish
+        run: |
+          git add .
+          git commit -m "Deploy ${{ github.ref_name }}"
+          git push
