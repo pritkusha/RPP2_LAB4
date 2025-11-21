@@ -1,8 +1,8 @@
 name: Deploy to GitHub Pages
 
 on:
-  release: # триггер, который реагирует на события, связанные с релизами
-    types: [published] # запускает workflow только когда релиз опубликован
+  release:
+    types: [published] 
 
 jobs:
   deploy:
