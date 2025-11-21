@@ -9,18 +9,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Клонирование репозитория
         uses: actions/checkout@v3
 
-      - name: Prepare versioned folder
+      - name: Настройка Git
         run: |
-            mkdir -p v${{ github.event.release.tag_name }}
-            cp -r $(ls -A | grep -v "^v${{ github.event.release.tag_name }}$" | grep -v "^.git$" | grep -v "^.github$") v${{ github.event.release.tag_name}}/
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
 
+      - name: Подготовка версионной папки
+        run: |
+          mkdir -p v${{ github.event.release.tag_name }}
+          cp -r $(ls -A | grep -v "^v${{ github.event.release.tag_name }}$" | grep -v "^.git$" | grep -v "^.github$") v${{ github.event.release.tag_name }}/
 
-      - name: Deploy to GitHub Pages
+      - name: Деплой на GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./v${{ github.event.release.tag_name }}
           publish_branch: gh-pages
