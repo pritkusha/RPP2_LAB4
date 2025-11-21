@@ -21,6 +21,9 @@ jobs:
 
       - name: Публикация изменений
         run: |
+          run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
           git add .
           git commit -m "Add version ${{ github.ref_name }}"
           git push
