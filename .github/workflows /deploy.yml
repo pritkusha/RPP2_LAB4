@@ -2,51 +2,47 @@ name: Deploy to GitHub Pages
 
 on:
   release:
-    # Запуск только при создании нового релиза
-    types: [published]  
+    types: [published]
+    
 jobs:
   deploy:
-    # Запуск на виртуальной машине с Ubuntu
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
+    
     steps:
-      # Получаю текущее содержимое ветки gh-pages со всеми предыдущими версиями
-      - name: Checkout code and gh-pages
-        uses: actions/checkout@v3
-        with:
-          # Работаю с веткой gh-pages
-          ref: gh-pages    
-          # Сохраняю в папку gh-pages
-          path: gh-pages     
-
-      # Получаю  код из ветки main
+      # 1. Получаем код релиза (из ветки main или default branch)
       - name: Checkout main code
         uses: actions/checkout@v3
         with:
-          # Сохраняю в папку main-code
-          path: main-code    
-
-      # Копирую файлы, сохраняя все предыдущие версии
-      - name: Copy version to gh-pages
+          ref: main
+          
+      # 2. Получаем текущий gh-pages
+      - name: Get gh-pages branch
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+          path: gh-pages-content
+          
+      # 3. Подготавливаем структуру версий
+      - name: Prepare versioned structure
         run: |
-          cd gh-pages
-          # Создаю папку для новой версии
-          mkdir -p ${{ github.event.release.tag_name }}
+          # Создаем папку для новой версии
+          mkdir -p gh-pages-content/v${{ github.event.release.tag_name }}
           
-          # Копирую файлы в папку версии
-          cp -r ../main-code/*.html ../main-code/ru ../main-code/en ./${{ github.event.release.tag_name }}/
+          # Копируем все файлы сайта в папку версии
+          # Сохраняем структуру папок ru/ и en/
+          cp -r ./*.html ./ru ./en ./assets gh-pages-content/v${{ github.event.release.tag_name }}/
           
-          # Копирую файлы в корень для основной версии сайта
-          cp -r ../main-code/*.html ../main-code/ru ../main-code/en ./
-
-      # Публикую обновленную ветку gh-pages на GitHub Pages
+          # Обновляем основную (последнюю) версию в корне
+          cp -r ./*.html ./ru ./en ./assets gh-pages-content/
+          
+          # Добавляем текущую версию в файл версий (опционально)
+          echo "${{ github.event.release.tag_name }}" >> gh-pages-content/versions.txt
+          
+      # 4. Публикуем на GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          # Авторизация в GitHub
-          github_token: ${{ secrets.GITHUB_TOKEN }}  
-          
-          # Публикую из папки gh-pages
-          publish_dir: ./gh-pages
-
-          # Сохраняю все существующие файлы, все версии
-          keep_files: true      
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages-content
+          publish_branch: gh-pages
+          force_orphan: false
