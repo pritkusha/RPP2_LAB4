@@ -1,0 +1,52 @@
+name: Deploy to GitHub Pages
+
+on:
+  release:
+    # Запуск только при создании нового релиза
+    types: [published]  
+jobs:
+  deploy:
+    # Запуск на виртуальной машине с Ubuntu
+    runs-on: ubuntu-latest  
+    steps:
+      # Получаю текущее содержимое ветки gh-pages со всеми предыдущими версиями
+      - name: Checkout code and gh-pages
+        uses: actions/checkout@v3
+        with:
+          # Работаю с веткой gh-pages
+          ref: gh-pages    
+          # Сохраняю в папку gh-pages
+          path: gh-pages     
+
+      # Получаю  код из ветки main
+      - name: Checkout main code
+        uses: actions/checkout@v3
+        with:
+          # Сохраняю в папку main-code
+          path: main-code    
+
+      # Копирую файлы, сохраняя все предыдущие версии
+      - name: Copy version to gh-pages
+        run: |
+          cd gh-pages
+          # Создаю папку для новой версии
+          mkdir -p ${{ github.event.release.tag_name }}
+          
+          # Копирую файлы в папку версии
+          cp -r ../main-code/*.html ../main-code/ru ../main-code/en ./${{ github.event.release.tag_name }}/
+          
+          # Копирую файлы в корень для основной версии сайта
+          cp -r ../main-code/*.html ../main-code/ru ../main-code/en ./
+
+      # Публикую обновленную ветку gh-pages на GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # Авторизация в GitHub
+          github_token: ${{ secrets.GITHUB_TOKEN }}  
+          
+          # Публикую из папки gh-pages
+          publish_dir: ./gh-pages
+
+          # Сохраняю все существующие файлы, все версии
+          keep_files: true      
