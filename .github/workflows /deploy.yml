@@ -1,35 +1,48 @@
-name: Deploy Release
+name: Deploy to GitHub Pages
 
 on:
   release:
     types: [published]
-
+    
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout and setup
+      # 1. Получаем код релиза (из ветки main или default branch)
+      - name: Checkout main code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          
+      # 2. Получаем текущий gh-pages
+      - name: Get gh-pages branch
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+          path: gh-pages-content
+          
+      # 3. Подготавливаем структуру версий
+      - name: Prepare versioned structure
         run: |
-          # Клонируем репозиторий
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git repo
-          cd repo
+          # Создаем папку для новой версии
+          mkdir -p gh-pages-content/v${{ github.event.release.tag_name }}
           
-          # Переключаемся на gh-pages
-          git checkout gh-pages
+          # Копируем все файлы сайта в папку версии
+          # Сохраняем структуру папок ru/ и en/
+          cp -r ./*.html ./ru ./en ./assets gh-pages-content/v${{ github.event.release.tag_name }}/
           
-          # Создаем версионную папку
-          VERSION="${{ github.ref_name }}"
-          VERSION="${VERSION#v}"
-          mkdir -p v$VERSION
+          # Обновляем основную (последнюю) версию в корне
+          cp -r ./*.html ./ru ./en ./assets gh-pages-content/
           
-          # Скачиваем файлы напрямую из main ветки
-          git checkout main -- en ru index.html
-          cp -r en ru index.html v$VERSION/
-          rm -rf en ru index.html
+          # Добавляем текущую версию в файл версий (опционально)
+          echo "${{ github.event.release.tag_name }}" >> gh-pages-content/versions.txt
           
-          # Коммитим и пушим
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Deploy version ${{ github.ref_name }}"
-          git push
+      # 4. Публикуем на GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages-content
+          publish_branch: gh-pages
+          force_orphan: false
